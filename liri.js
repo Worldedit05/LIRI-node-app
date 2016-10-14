@@ -6,6 +6,7 @@ var Keys = require('./keys.js');
 var spotify = require('spotify');
 
 //Request npm information
+var request = require('request');
 
 var userCommand = process.argv;
 
@@ -20,7 +21,7 @@ var twitterClient = new Twitter({
 // //Twitter call
 twitterClient.get('statuses/user_timeline', 'count=20', function(error, tweets, response) {
   if (error) {
-    console.log("Error has occurred: " + error);
+    console.log("Error has occurred with the Twitter request: " + error);
     throw error;
   }
   console.log("\n\nHere are your last 20 tweets: ");
@@ -32,7 +33,7 @@ twitterClient.get('statuses/user_timeline', 'count=20', function(error, tweets, 
 //Spotify search -- type === track because user is only entering a song name to search for
 spotify.search({ type: 'track', query: 'mexican sun' } , function(err, response) {
   if (err) {
-    console.log("Error has occurred: " + err);
+    console.log("Error has occurred with the Spotify request: " + err);
     return;
   }
   //Spotify's info is nested so lets store it for ease of use
@@ -54,5 +55,14 @@ spotify.search({ type: 'track', query: 'mexican sun' } , function(err, response)
     }
     console.log("Song Title: " + result.name + "Album: " + result.album.name + "\nSpotify Preview URL: " + result.preview_url);
     console.log("\n------------------------\n");
+  }
+});
+
+request( 'http://www.omdbapi.com/?t=remember+the+titans&y=&plot=short&tomatoes=true&r=json', function(error, response, body) {
+  if (!error && response.statusCode == 200) {
+    console.log("\nHere is the info about your movie: \n");
+    console.log("Title: " + JSON.parse(body).Title + "\nYear: " + JSON.parse(body).Year + "\nIMDB Rating: " + JSON.parse(body).imdbRating + "\nCountry: " + JSON.parse(body).Country + "\nLanguage: " + JSON.parse(body).Language + "\nPlot: " + JSON.parse(body).Plot + "\nActors: " + JSON.parse(body).Actors + "\nRotten Tomatoes Rating: " + JSON.parse(body).tomatoRating + "\nRotten Tomatoes URL: " + JSON.parse(body).tomatoURL);
+  }else {
+    console.log("Error has occurred with OMDB request: " + error);
   }
 });
