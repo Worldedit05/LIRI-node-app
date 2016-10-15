@@ -8,12 +8,15 @@ var spotify = require('spotify');
 //Request npm information
 var request = require('request');
 
+//FS package information
+var fs = require('fs');
+
 var userCommand = process.argv;
 var userInput = "";
 
 //Store the rest of the argument for the search queries
-for (var i = 3; i < process.argv.length; i++){
-  userInput += process.argv[i] + " ";
+for (var i = 3; i < process.argv.length; i++) {
+    userInput += process.argv[i] + " ";
 }
 
 //Find the user's command
@@ -58,7 +61,6 @@ function callTwitter() {
 
 //Spotify search -- type === track because user is only entering a song name to search for
 function callSpotify() {
-  console.log(userInput);
     spotify.search({
         type: 'track',
         query: userInput.trim()
@@ -74,6 +76,7 @@ function callSpotify() {
         for (var i = 0; i < data.length; i++) {
             var result = data[i];
             //Since some of the songs will return with multiple artists we have to provide a check and loop through that data
+            console.log("------------ Result #" + (parseInt([i]) + 1) + " ------------\n");
             if (result.artists.length > 1) {
                 console.log("Artist: This song had multiple artists! (See below)");
                 var index = 0;
@@ -84,19 +87,46 @@ function callSpotify() {
             } else {
                 console.log("Artist: " + result.artists[0].name);
             }
-            console.log("Song Title: " + result.name + "Album: " + result.album.name + "\nSpotify Preview URL: " + result.preview_url);
-            console.log("\n------------------------\n");
+            console.log("Song Title: " + result.name + "\nAlbum: " + result.album.name + "\nSpotify Preview URL: " + result.preview_url + "\n");
         }
     });
 }
 
 function callOMDB() {
-    request('http://www.omdbapi.com/?t=remember+the+titans&y=&plot=short&tomatoes=true&r=json', function(error, response, body) {
+    if (userInput === "") {
+        userInput = "Mr.Nobody";
+    }
+    request('http://www.omdbapi.com/?t=' + userInput + '&y=&plot=short&tomatoes=true&r=json', function(error, response, body) {
         if (!error && response.statusCode == 200) {
             console.log("\nHere is the info about your movie: \n");
-            console.log("Title: " + JSON.parse(body).Title + "\nYear: " + JSON.parse(body).Year + "\nIMDB Rating: " + JSON.parse(body).imdbRating + "\nCountry: " + JSON.parse(body).Country + "\nLanguage: " + JSON.parse(body).Language + "\nPlot: " + JSON.parse(body).Plot + "\nActors: " + JSON.parse(body).Actors + "\nRotten Tomatoes Rating: " + JSON.parse(body).tomatoRating + "\nRotten Tomatoes URL: " + JSON.parse(body).tomatoURL);
+            console.log("Title: " + JSON.parse(body).Title + "\nYear: " + JSON.parse(body).Year + "\nIMDB Rating: " + JSON.parse(body).imdbRating + "\nCountry: " + JSON.parse(body).Country + "\nLanguage: " + JSON.parse(body).Language + "\nPlot: " + JSON.parse(body).Plot + "\nActors: " + JSON.parse(body).Actors + "\nRotten Tomatoes Rating: " + JSON.parse(body).tomatoRating + "\nRotten Tomatoes URL: " + JSON.parse(body).tomatoURL + "\n");
         } else {
             console.log("Error has occurred with OMDB request: " + error);
+        }
+    });
+}
+
+function doThis() {
+    fs.readFile("random.txt", "utf8", function(err, data) {
+        var output = data.split(',');
+        for (var i = 1; i < output.length; i++) {
+            userInput += output[i] + " ";
+        }
+        switch (output[0]) {
+            case 'my-tweets':
+                callTwitter();
+                break;
+            case 'spotify-this-song':
+                callSpotify();
+                break;
+            case 'movie-this':
+                callOMDB();
+                break;
+            case 'do-what-it-says':
+                doThis();
+                break;
+            default:
+                console.log("\n\nYou didn't enter a command!\n\n");
         }
     });
 }
